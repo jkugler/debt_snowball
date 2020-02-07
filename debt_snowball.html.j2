@@ -1,0 +1,75 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<script data-ad-client="{{ data_ad_client }}" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<title>Debt Snowball Paydown Calculator</title>
+</head>
+<body bgcolor="#0562f7" text="#f5f25d">
+  <h1>Pay down your debt faster!</h1>
+  <p>Snowball debt paydown, sometimes called Waterfall Debt Paydown involves taking the payment of a just-paid-off debt, and adding that amount to pay down another debt, then taking that full amount, once the debt is paid off, and applying it to another debt.</p>
+  <p>This calculator is intended to show the effect of this plan on a given set of debts.</p>
+  <p>Fill in the information below. A few things to keep in mind:</p>
+  <ul>
+    <li>The calculation will abort if the amount owed on any of the stays the same or debts keeps growing. In other words, if the current payment is not reducing the debt, it will not calculate the snowball effect.</li>
+    <li>The order of debts listed does not matter. The calcuation will sort the debts in order of payoff time, given the current payments, then will pay the first debt, followed by the second, and so on.</li>
+    <li>It will be assumed each debt is being paid monthly.</li>
+    <li>It will assume you are making/have made a payment in the current month.</li>
+    <li>If the payoff amount of a loan is less than the payment, its payment won't be added to the next debt until the following month</li>
+    <li><b>This tool is to provide an example payoff schedule only. For financial advice, please contact a CPA or financial advisor.</b></li>
+  </ul>
+  {% if message != '' %}
+  <font color="red">Problem with data: {{ message }}</font>
+  {% endif %}
+  <table>
+    <tr>
+      <td width="75%">
+        <form action="/" method="post">
+          <input type="hidden" name="row_count" value="10">
+          <table>
+            <tr>
+              <th>Number</th><th>Debt Name</th><th>Current Balance</th><th>Payment</th><th>Interest Rate</th>
+            </tr>
+            {% for num in range(1, 11) %}
+            <tr>
+              <td>{{ num }}</td>
+              <td><input type="text" name="debt_name_{{ num }}" value="{{ fields['debt_name_' + num | string] }}"></td>
+              <td><input type="text" name="balance_{{ num }}" value="{{ fields['balance_' + num | string] }}"></td>
+              <td><input type="text" name="payment_{{ num }}" value="{{ fields['payment_' + num | string] }}"></td>
+              <td><input type="text" name="apr_{{ num }}" value="{{ fields['apr_' + num | string] }}"></td>
+            </tr>
+            {% endfor %}
+            <td></td><td><input type="submit"></td><td></td><td></td><td></td>
+          </table>
+        </form>
+      </td>
+      <td width="25%">
+        <script data-ad-client="{{ data_ad_client }}" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+
+      </td>
+    </tr>
+  </table>
+  {% if results %}
+    {% for debt in results %}
+    <h1>{{ debt['debt_name']}}</h1>
+    <table>
+      <tr>
+        <th>Month</th><th>Start Balance</th><th>Balance After Interest</th><th>Payment</th><th>After Payment</th><th>Interest Paid</th><th>Principal Paid</th>
+      </tr>
+      {% for row in debt['payoff_chart'] %}
+      <tr>
+        <td>{{ row['month'].year }}-{{ row['month'].month }}</td>
+        <td>{{ row['start_balance'] }}</td>
+        <td>{{ row['new_balance'] }}</td>
+        <td>{{ row['payment'] }}</td>
+        <td>{{ row['paid_balance'] }}</td>
+        <td>{{ row['interest_payment'] }}</td>
+        <td>{{ row['principal_payment'] }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+    {% endfor %}
+  {% endif %}
+  A service of <a href="https://azariah">Azariah Enterprises</a> -- Suggestions? Comments? Ideas? <a href="mailto:debtsnowball@azariah.com">E-mail us!</a>
+</body>
+</html>

@@ -1,0 +1,6 @@
+*.*~
+*.pyc
+*.pyo
+.coverage
+debt_snowball_config.py
+passenger_wsgi.py

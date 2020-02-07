@@ -1,0 +1,4 @@
+template_file = './debt_snowball.html.j2'
+base_path = '/'
+debug = False
+data_ad_client = ''
