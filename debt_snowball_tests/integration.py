@@ -63,6 +63,14 @@ class TestWebResponses(unittest.TestCase):
                                       'balance_1': 'Dog', 'payment_1': '1', 'apr_1':'-5.3'})
         self.assertIn('Balance, payment, and APR must be numeric.', resp.data)
 
+    def test_rising_balance(self):
+        """Throw an exception when the debt value isn't going down"""
+        resp = self.c.post('/', data={'row_count': '2', 'debt_name_1': 'test_name_1',
+                                      'balance_1': '95113', 'payment_1': '100', 'apr_1':'5.375',
+                                      'debt_name_2': 'test_name_2', 'balance_2': '1',
+                                      'payment_2': '1', 'apr_2': '5.3'})
+        self.assertIn("Debt 'test_name_1' does", resp.data)
+
     def test_valid_run(self):
         """Run valid values all the way through and get a result"""
         resp = self.c.post('/', data={'row_count': '3',

@@ -8,19 +8,19 @@ import debt_snowball as ds
 class TestAmortization(unittest.TestCase):
     def test_single_loan(self):
         """Test running with one loan"""
-        result = ds.do_amortization(95113.31, 1111.67, 5.375)
+        result = ds.do_amortization('dummy', 95113.31, 1111.67, 5.375)
         self.assertEqual(len(result), 109)
         self.assertEqual(ds.money_fmt(147.32), result[-1]['start_balance'])
 
     def test_growing_balance_abort(self):
         """Amortization should abort if balance is growing"""
-        self.assertRaises(ds.RisingBalance, ds.do_amortization, 95113.31, 100, 5.375)
+        self.assertRaises(ds.RisingBalance, ds.do_amortization, 'dummy', 95113.31, 100, 5.375)
 
     def test_multi_loan(self):
         """Test running with one loan and additional paydown"""
         today = datetime.date.today()
         additional_start = today + relativedelta(years=5)
-        result = ds.do_amortization(95113.31, 1111.67, 5.375, additional_start, 1000)
+        result = ds.do_amortization('dummy', 95113.31, 1111.67, 5.375, additional_start, 1000)
         self.assertEqual(result[-1]['start_balance'], ds.money_fmt(1205.32))
 
 class TestMoneyFormat(unittest.TestCase):

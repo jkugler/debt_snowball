@@ -98,7 +98,7 @@ def money_fmt(value, places=2, curr='$', sep=',', dp='.',
     build(neg if sign else pos)
     return ''.join(reversed(result))
 
-def do_amortization(balance, payment, apr, additional_start=datetime.date(9999, 12,31), additional_payment=0):
+def do_amortization(debt_name, balance, payment, apr, additional_start=datetime.date(9999, 12,31), additional_payment=0):
     apr = float(apr)/100.0
     monthly_pr = apr/12.0
 
@@ -125,7 +125,7 @@ def do_amortization(balance, payment, apr, additional_start=datetime.date(9999, 
         paid_balance = new_balance - payment
 
         if paid_balance >= start_balance:
-            raise RisingBalance
+            raise RisingBalance(debt_name)
 
         if paid_balance < 0:
             paid_balance = 0
@@ -166,7 +166,7 @@ def sort_by_payoff_time(fields):
         payment = fields["payment_%s" % num].strip()
         apr = fields["apr_%s" % num].strip()
 
-        payments = len(do_amortization(balance, payment, apr))
+        payments = len(do_amortization(debt_name, balance, payment, apr))
 
         debts[debt_name] = {'debt_name': debt_name, 'payments': payments, 'balance': balance,
                             'payment': payment, 'apr': apr}
@@ -182,7 +182,8 @@ def calculate_combined_payoff_tables(sorted_debts):
 
     for debt in sorted_debts:
         results.append({'debt_name': debt['debt_name'],
-                        'payoff_chart': do_amortization(debt['balance'], debt['payment'],
+                        'payoff_chart': do_amortization(debt['debt_name'],
+                                                        debt['balance'], debt['payment'],
                                                         debt['apr'], additional_start,
                                                         additional_payment)})
 
@@ -276,6 +277,10 @@ def application(request):
     except DuplicateNames, e:
         response.data = render_page(fields=fields,
                                     message='To avoid confusion, all debts must have unique names.')
+
+    except RisingBalance, e:
+        response.data = render_page(fields=fields,
+                                    message="Debt '%s' does not have a large enough payment to reduce the balance." % e.message)
 
     except ValueError, e:
         response.data = render_page(fields=fields,
