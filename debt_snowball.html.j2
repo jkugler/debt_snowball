@@ -6,17 +6,17 @@
 <title>Debt Snowball Paydown Calculator</title>
 </head>
 <body bgcolor="#0562f7" text="#f5f25d">
-  <h1>Pay down your debt faster!</h1>
+  <h1>Pay Down Your Debt Faster!</h1>
   <p>Snowball debt paydown, sometimes called Waterfall Debt Paydown involves taking the payment of a just-paid-off debt, and adding that amount to pay down another debt, then taking that full amount, once the debt is paid off, and applying it to another debt.</p>
   <p>This calculator is intended to show the effect of this plan on a given set of debts.</p>
   <p>Fill in the information below. A few things to keep in mind:</p>
   <ul>
-    <li>The calculation will abort if the amount owed on any of the stays the same or debts keeps growing. In other words, if the current payment is not reducing the debt, it will not calculate the snowball effect.</li>
-    <li>The order of debts listed does not matter. The calcuation will sort the debts in order of payoff time, given the current payments, then will pay the first debt, followed by the second, and so on.</li>
+    <li>The calculation will abort if the amount owed on any of the debts stays the same or debts keeps growing. In other words, if the current payment is not reducing the debt, it will not calculate the snowball effect.</li>
+    <li>The order of debts listed does not matter. The calcuation will sort the debts in order of payoff time, given the current payments. It will then calculate the payoffs started with the debts that can be paid off first with current payments.</li>
     <li>It will be assumed each debt is being paid monthly.</li>
-    <li>It will assume you are making/have made a payment in the current month.</li>
+    <li>It will assume you are making a payment in the current month.</li>
     <li>If the payoff amount of a loan is less than the payment, its payment won't be added to the next debt until the following month</li>
-    <li><b>This tool is to provide an example payoff schedule only. For financial advice, please contact a CPA or financial advisor.</b></li>
+    <li><b>This tool is to provide an example payoff schedule only. For financial advice, please contact a Financial Advisor or CPA.</b></li>
   </ul>
   {% if message != '' %}
   <font color="red">Problem with data: {{ message }}</font>
