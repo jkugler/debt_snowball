@@ -5,9 +5,69 @@
 <head>
   <meta http-equiv="Content-Type" content="utf-8">
   <title>Debt Snowball Paydown Calculator</title>
-  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Oswald:wght@200;300;400;500;600;700&display=swap" rel="stylesheet"> 
+  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Oswald:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
   <script data-ad-client="{{ data_ad_client }}" async
     src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+
+    <style>
+    * {
+      transition: .5s ease all;
+    }
+
+    /* default font for accessibility and in case a framework is added */
+    :root {
+      --blue: #295fa6;
+      --blue-light: #2a95bf;
+      --white: #fff;
+      font-size: 100%;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Lato', sans-serif;
+      font-weight: 300;
+    }
+
+    header {
+      margin: 0;
+      background-color: var(--blue);
+      color: var(--white);
+      border-bottom: 8px solid var(--blue-light);
+    }
+
+    main {
+      max-width: 800px;
+      margin: 5em auto;
+    }
+
+    h1 {
+      margin: 0;
+      padding: 2.5em 0;
+      font-family: 'Oswald', sans-serif;
+      font-size: calc(1.5em + 3vw);
+      font-weight: 700;
+      text-align: center;
+    }
+
+    input {
+      border-radius: 8px;
+      padding: .8em;
+    }
+    input[type="submit"] {
+      background-color: var(--blue);
+      color: var(--white);
+    }
+
+    .error {
+      color: #f00;
+    }
+
+    .text-center {
+      text-align: center;
+    }
+  </style>
 </head>
 
 <body>
