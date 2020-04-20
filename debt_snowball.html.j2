@@ -1,60 +1,152 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
-<script data-ad-client="{{ data_ad_client }}" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<title>Debt Snowball Paydown Calculator</title>
-</head>
-<body bgcolor="#0562f7" text="#f5f25d">
-  <h1>Pay Down Your Debt Faster!</h1>
-  <p>Snowball debt paydown, sometimes called Waterfall Debt Paydown involves taking the payment of a just-paid-off debt, and adding that amount to pay down another debt, then taking that full amount, once the debt is paid off, and applying it to another debt.</p>
-  <p>This calculator is intended to show the effect of this plan on a given set of debts.</p>
-  <p>Fill in the information below. A few things to keep in mind:</p>
-  <ul>
-    <li>The calculation will abort if the amount owed on any of the debts stays the same or debts keeps growing. In other words, if the current payment is not reducing the debt, it will not calculate the snowball effect.</li>
-    <li>The order of debts listed does not matter. The calcuation will sort the debts in order of payoff time, given the current payments. It will then calculate the payoffs started with the debts that can be paid off first with current payments.</li>
-    <li>It will be assumed each debt is being paid monthly.</li>
-    <li>It will assume you are making a payment in the current month.</li>
-    <li>If the payoff amount of a loan is less than the payment, its payment won't be added to the next debt until the following month</li>
-    <li><b>This tool is to provide an example payoff schedule only. For financial advice, please contact a Financial Advisor or CPA.</b></li>
-  </ul>
-  {% if message != '' %}
-  <font color="red">Problem with data: {{ message }}</font>
-  {% endif %}
-  <table>
-    <tr>
-      <td width="75%">
-        <form action="/" method="post">
-          <input type="hidden" name="row_count" value="10">
-          <table>
-            <tr>
-              <th>Number</th><th>Debt Name</th><th>Current Balance</th><th>Payment</th><th>Interest Rate</th>
-            </tr>
-            {% for num in range(1, 11) %}
-            <tr>
-              <td>{{ num }}</td>
-              <td><input type="text" name="debt_name_{{ num }}" value="{{ fields['debt_name_' + num | string] }}"></td>
-              <td><input type="text" name="balance_{{ num }}" value="{{ fields['balance_' + num | string] }}"></td>
-              <td><input type="text" name="payment_{{ num }}" value="{{ fields['payment_' + num | string] }}"></td>
-              <td><input type="text" name="apr_{{ num }}" value="{{ fields['apr_' + num | string] }}"></td>
-            </tr>
-            {% endfor %}
-            <td></td><td><input type="submit"></td><td></td><td></td><td></td>
-          </table>
-        </form>
-      </td>
-      <td width="25%">
-        <script data-ad-client="{{ data_ad_client }}" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!DOCTYPE html">
 
-      </td>
-    </tr>
-  </table>
-  {% if results %}
-    {% for debt in results %}
-    <h1>{{ debt['debt_name']}}</h1>
+<html lang="en-us">
+
+<head>
+  <meta http-equiv="Content-Type" content="utf-8">
+  <title>Debt Snowball Paydown Calculator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Oswald:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
+  <script data-ad-client="{{ data_ad_client }}" async
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+
+    <style>
+    * {
+      transition: .5s ease all;
+    }
+
+    /* default font for accessibility and in case a framework is added */
+    :root {
+      --blue: #295fa6;
+      --blue-light: #2a95bf;
+      --white: #fff;
+      font-size: 100%;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Lato', sans-serif;
+      font-weight: 300;
+    }
+
+    header {
+      margin: 0;
+      background-color: var(--blue);
+      color: var(--white);
+      border-bottom: 8px solid var(--blue-light);
+    }
+
+    main {
+      max-width: 800px;
+      margin: 5em auto;
+    }
+
+    h1 {
+      margin: 0;
+      padding: 2.5em 0;
+      font-family: 'Oswald', sans-serif;
+      font-size: calc(1.5em + 3vw);
+      font-weight: 700;
+      text-align: center;
+    }
+
+    input {
+      border-radius: 8px;
+      padding: .8em;
+    }
+    input[type="submit"] {
+      background-color: var(--blue);
+      color: var(--white);
+    }
+
+    .error {
+      color: #f00;
+    }
+
+    .text-center {
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Pay Down Your Debt Faster!</h1>
+  </header>
+
+  <main>
+    <p>Snowball debt paydown, sometimes called Waterfall Debt Paydown involves taking the payment of a just-paid-off debt, and adding that amount to pay down another debt, then taking that full amount, once the debt is paid off, and applying it to another debt.</p>
+
+    <p>This calculator is intended to show the effect of this plan on a given set of debts.</p>
+
+    <p>Fill in the information below. A few things to keep in mind:</p>
+
+    <ul>
+      <li>The calculation will abort if the amount owed on any of the debts stays the same or debts keeps growing. In other words, if the current payment is not reducing the debt, it will not calculate the snowball effect.</li>
+      <li>The order of debts listed does not matter. The calcuation will sort the debts in order of payoff time, given the current payments. It will then calculate the payoffs started with the debts that can be paid off first with current payments.</li>
+      <li>It will be assumed each debt is being paid monthly.</li>
+      <li>It will assume you are making a payment in the current month.</li>
+      <li>If the payoff amount of a loan is less than the payment, its payment won't be added to the next debt until the following month</li>
+      <li><strong>This tool is to provide an example payoff schedule only. For financial advice, please contact a Financial Advisor or CPA.</strong></li>
+    </ul>
+
+    {% if message != '' %}
+    <p class="error">Problem with data: {{ message }}</p>
+    {% endif %}
+
     <table>
       <tr>
-        <th>Month</th><th>Start Balance</th><th>Balance After Interest</th><th>Payment</th><th>After Payment</th><th>Interest Paid</th><th>Principal Paid</th>
+        <td width="75%">
+          <form action="/" method="post">
+            <input type="hidden" name="row_count" value="10">
+            <table>
+              <tr>
+                <th>Number</th>
+                <th>Debt Name</th>
+                <th>Current Balance</th>
+                <th>Payment</th>
+                <th>Interest Rate</th>
+              </tr>
+              {% for num in range(1, 11) %}
+              <tr>
+                <td>{{ num }}</td>
+                <td><input type="text" name="debt_name_{{ num }}" value="{{ fields['debt_name_' + num | string] }}">
+                </td>
+                <td><input type="text" name="balance_{{ num }}" value="{{ fields['balance_' + num | string] }}"></td>
+                <td><input type="text" name="payment_{{ num }}" value="{{ fields['payment_' + num | string] }}"></td>
+                <td><input type="text" name="apr_{{ num }}" value="{{ fields['apr_' + num | string] }}"></td>
+              </tr>
+              {% endfor %}
+              <td></td>
+              <td><input type="submit"></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </table>
+          </form>
+        </td>
+        <td width="25%">
+          <script data-ad-client="{{ data_ad_client }}" async
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+
+        </td>
+      </tr>
+    </table>
+
+    {% if results %}
+    {% for debt in results %}
+    <h2>{{ debt['debt_name']}}</h2>
+
+    <table>
+      <tr>
+        <th>Month</th>
+        <th>Start Balance</th>
+        <th>Balance After Interest</th>
+        <th>Payment</th>
+        <th>After Payment</th>
+        <th>Interest Paid</th>
+        <th>Principal Paid</th>
       </tr>
       {% for row in debt['payoff_chart'] %}
       <tr>
@@ -69,7 +161,12 @@
       {% endfor %}
     </table>
     {% endfor %}
-  {% endif %}
-  A service of <a href="https://azariah">Azariah Enterprises</a> -- Suggestions? Comments? Ideas? <a href="mailto:debtsnowball@azariah.com">E-mail us!</a>
+    {% endif %}
+  </main>
+
+  <footer class="text-center">
+    <p>A service of <a href="https://azariah">Azariah Enterprises</a> &mdash; Suggestions? Comments? Ideas? <a
+        href="mailto:debtsnowball@azariah.com">E-mail us!</a></p>
+  </footer>
 </body>
 </html>
