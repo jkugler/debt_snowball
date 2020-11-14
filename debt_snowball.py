@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 
-#from email.MIMEMultipart import MIMEMultipart
-#from email.MIMEText import MIMEText
 from decimal import Decimal
 import datetime
 import os
