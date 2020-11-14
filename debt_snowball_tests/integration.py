@@ -18,7 +18,7 @@ class TestWebResponses(unittest.TestCase):
         """Test a valid get"""
         resp = self.c.get('/')
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('Snowball debt paydown', resp.data)
+        self.assertIn('Snowball debt paydown', resp.data.decode('utf-8'))
 
     def test_invalid_method(self):
         """Test an invalid method"""
@@ -29,25 +29,25 @@ class TestWebResponses(unittest.TestCase):
         """Sent an empty post"""
         resp = self.c.post('/')
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('Snowball debt paydown', resp.data)
+        self.assertIn('Snowball debt paydown', resp.data.decode('utf-8'))
 
     def test_incomplete_values(self):
         """Send a line with incomplete data"""
         resp = self.c.post('/', data={'row_count': '10', 'debt_name_1': 'test_name',
                                       'balance_1': '0', 'payment_1': '0', 'apr_1':''})
-        self.assertIn('All fields on a line must be filled out.', resp.data)
+        self.assertIn('All fields on a line must be filled out.', resp.data.decode('utf-8'))
 
     def test_too_few_debts(self):
         """Send only one debt"""
         resp = self.c.post('/', data={'row_count': '1', 'debt_name_1': 'test_name',
                                       'balance_1': '0', 'payment_1': '0', 'apr_1':'5.3'})
-        self.assertIn('Two or more debts must be provided', resp.data)
+        self.assertIn('Two or more debts must be provided', resp.data.decode('utf-8'))
 
     def test_negative_numbers(self):
         """Throw exception on negative numbers"""
         resp = self.c.post('/', data={'row_count': '1', 'debt_name_1': 'test_name',
                                       'balance_1': '1', 'payment_1': '1', 'apr_1':'-5.3'})
-        self.assertIn('All numbers must be positive.', resp.data)
+        self.assertIn('All numbers must be positive.', resp.data.decode('utf-8'))
 
     def test_duplicate_names(self):
         """Throw exception on duplicate debt names"""
@@ -55,13 +55,13 @@ class TestWebResponses(unittest.TestCase):
                                       'balance_1': '1', 'payment_1': '1', 'apr_1':'5.3',
                                       'debt_name_2': 'test_name', 'balance_2': '1',
                                       'payment_2': '1', 'apr_2': '5.3'})
-        self.assertIn('To avoid confusion, all debts must have unique names.', resp.data)
+        self.assertIn('To avoid confusion, all debts must have unique names.', resp.data.decode('utf-8'))
 
     def test_invalid_values(self):
         """Throw an exception on non-numeric values"""
         resp = self.c.post('/', data={'row_count': '1', 'debt_name_1': 'test_name',
                                       'balance_1': 'Dog', 'payment_1': '1', 'apr_1':'-5.3'})
-        self.assertIn('Balance, payment, and APR must be numeric.', resp.data)
+        self.assertIn('Balance, payment, and APR must be numeric.', resp.data.decode('utf-8'))
 
     def test_rising_balance(self):
         """Throw an exception when the debt value isn't going down"""
@@ -69,7 +69,7 @@ class TestWebResponses(unittest.TestCase):
                                       'balance_1': '95113', 'payment_1': '100', 'apr_1':'5.375',
                                       'debt_name_2': 'test_name_2', 'balance_2': '1',
                                       'payment_2': '1', 'apr_2': '5.3'})
-        self.assertIn("Debt 'test_name_1' does", resp.data)
+        self.assertIn("Debt 'test_name_1' does", resp.data.decode('utf-8'))
 
     def test_valid_run(self):
         """Run valid values all the way through and get a result"""
@@ -80,9 +80,9 @@ class TestWebResponses(unittest.TestCase):
                                       'payment_2': '300', 'apr_2': '12',
                                       'debt_name_3': 'debt c', 'balance_3':'10000',
                                       'payment_3': '150', 'apr_3': '12'})
-        self.assertIn('debt a', resp.data)
-        self.assertIn('debt b', resp.data)
-        self.assertIn('debt c', resp.data)
-        self.assertIn('$222.73', resp.data)
-        self.assertIn('$250.55', resp.data)
-        self.assertIn('$502.83', resp.data)
+        self.assertIn('debt a', resp.data.decode('utf-8'))
+        self.assertIn('debt b', resp.data.decode('utf-8'))
+        self.assertIn('debt c', resp.data.decode('utf-8'))
+        self.assertIn('$222.73', resp.data.decode('utf-8'))
+        self.assertIn('$250.55', resp.data.decode('utf-8'))
+        self.assertIn('$502.83', resp.data.decode('utf-8'))
