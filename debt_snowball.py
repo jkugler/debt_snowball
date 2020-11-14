@@ -1,22 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-
-from decimal import Decimal
 import datetime
-import os
+from decimal import Decimal
 import re
-import sqlite3
 import sys
-from time import gmtime, strftime
 from urllib.parse import urlparse
-import warnings
 
 from dateutil.relativedelta import relativedelta
-from jinja2 import Environment, PackageLoader, select_autoescape
 from jinja2 import Template
 from werkzeug import Request, Response
-from werkzeug.exceptions import HTTPException,BadRequest, NotFound
+from werkzeug.exceptions import HTTPException, BadRequest, NotFound
 
 import debt_snowball_config as rc
 
@@ -157,13 +150,13 @@ def sort_by_payoff_time(fields):
     debts = {}
 
     for num in range(1, int(fields['row_count']) + 1):
-        debt_name = fields["debt_name_%s" % num].strip()
+        debt_name = fields["debt_name_%s" % num]
         if debt_name == '':
             continue
 
-        balance = fields["balance_%s" % num].strip().replace('$%,', '')
-        payment = fields["payment_%s" % num].strip().replace('$%,', '')
-        apr = fields["apr_%s" % num].strip().replace('$%,', '')
+        balance = fields["balance_%s" % num]
+        payment = fields["payment_%s" % num]
+        apr = fields["apr_%s" % num].strip()
 
         payments = len(do_amortization(debt_name, balance, payment, apr))
 
@@ -192,14 +185,9 @@ def calculate_combined_payoff_tables(sorted_debts):
     return results
 
 def process_form(fields):
-    ##TODO: Make sure all values are positive
-    ##TODO: Make sure all values are numerical
-    ##TODO: Make sure all values are positive
     ##TODO: Do this checking client-side too
     ##TODO: Return names of fields to highlight in red
     ##TODO: Move a good chunk of this into validate_form()
-    ##TODO: Reduce the number of todos
-    missing = []
     debt_count = 0
     debt_names = {}
 
