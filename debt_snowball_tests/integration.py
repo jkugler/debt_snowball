@@ -80,9 +80,10 @@ class TestWebResponses(unittest.TestCase):
                                       'payment_2': '300', 'apr_2': '12',
                                       'debt_name_3': 'debt c', 'balance_3':'10000',
                                       'payment_3': '150', 'apr_3': '12'})
-        self.assertIn('debt a', resp.data.decode('utf-8'))
-        self.assertIn('debt b', resp.data.decode('utf-8'))
-        self.assertIn('debt c', resp.data.decode('utf-8'))
-        self.assertIn('$222.73', resp.data.decode('utf-8'))
-        self.assertIn('$250.55', resp.data.decode('utf-8'))
-        self.assertIn('$502.83', resp.data.decode('utf-8'))
+        data = resp.data.decode('utf-8')
+        self.assertIn('debt a', data)
+        self.assertIn('debt b', data)
+        self.assertIn('debt c', data)
+        self.assertIn('$222.73', data)
+        self.assertIn('$250.55', data)
+        self.assertIn('$502.83', data)
