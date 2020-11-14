@@ -1,27 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-
-#from email.MIMEMultipart import MIMEMultipart
-#from email.MIMEText import MIMEText
-from decimal import Decimal
 import datetime
-
-import os
-from dateutil.relativedelta import relativedelta
-#import smtplib
-import sqlite3
+from decimal import Decimal
+import re
 import sys
-from time import gmtime, strftime
-import urlparse
-import warnings
+from urllib.parse import urlparse
 
-from jinja2 import Environment, PackageLoader, select_autoescape
+from dateutil.relativedelta import relativedelta
 from jinja2 import Template
 from werkzeug import Request, Response
-from werkzeug.exceptions import HTTPException,BadRequest, NotFound
+from werkzeug.exceptions import HTTPException, BadRequest, NotFound
 
 import debt_snowball_config as rc
+
+__version__ = '2020-11-13-16-05'
 
 class NoFormData(BadRequest):
     pass
@@ -158,12 +150,12 @@ def sort_by_payoff_time(fields):
     debts = {}
 
     for num in range(1, int(fields['row_count']) + 1):
-        debt_name = fields["debt_name_%s" % num].strip()
+        debt_name = fields["debt_name_%s" % num]
         if debt_name == '':
             continue
 
-        balance = fields["balance_%s" % num].strip()
-        payment = fields["payment_%s" % num].strip()
+        balance = fields["balance_%s" % num]
+        payment = fields["payment_%s" % num]
         apr = fields["apr_%s" % num].strip()
 
         payments = len(do_amortization(debt_name, balance, payment, apr))
@@ -193,16 +185,14 @@ def calculate_combined_payoff_tables(sorted_debts):
     return results
 
 def process_form(fields):
-    ##TODO: Make sure all values are positive
-    ##TODO: Make sure all values are numerical
-    ##TODO: Make sure all values are positive
     ##TODO: Do this checking client-side too
     ##TODO: Return names of fields to highlight in red
     ##TODO: Move a good chunk of this into validate_form()
-    ##TODO: Reduce the number of todos
-    missing = []
     debt_count = 0
     debt_names = {}
+
+    # Sanitized fields
+    s_fields = fields.copy()
 
     # Make sure all values are filled out if one value on a line is filled out
     for num in range(1, int(fields['row_count']) + 1):
@@ -210,13 +200,16 @@ def process_form(fields):
         if any(not_blank) and not all(not_blank):
             raise MissingFields
 
-        if any([fields["debt_name_%s" % (num)] != '' and float(fields["%s_%s" % (f, num)]) < 0 for f in ['balance', 'payment', 'apr']]):
+        for f in ['balance', 'payment', 'apr']:
+            s_fields["%s_%s" % (f, num)] = re.sub('[$%,]', '', s_fields["%s_%s" % (f, num)].strip())
+
+        if any([s_fields["debt_name_%s" % (num)] != '' and float(s_fields["%s_%s" % (f, num)]) < 0 for f in ['balance', 'payment', 'apr']]):
             raise NegativeNumbers
 
-        if fields["debt_name_%s" % (num)] == '':
+        if s_fields["debt_name_%s" % (num)] == '':
             continue
 
-        debt_names[fields["debt_name_%s" % num]] = 1
+        debt_names[s_fields["debt_name_%s" % num]] = 1
 
         debt_count += 1
 
@@ -226,7 +219,7 @@ def process_form(fields):
     if len(debt_names) < debt_count:
         raise DuplicateNames
 
-    sorted_debts = sort_by_payoff_time(fields)
+    sorted_debts = sort_by_payoff_time(s_fields)
 
     payoff_tables = calculate_combined_payoff_tables(sorted_debts)
 
@@ -235,7 +228,7 @@ def process_form(fields):
 def render_page(fields={}, results=[], message=''):
     template = Template(open(rc.template_file).read())
     return template.render(fields=fields, results=results, message=message,
-                           data_ad_client=rc.data_ad_client)
+                           data_ad_client=rc.data_ad_client, version=__version__)
 
 @Request.application
 def application(request):
@@ -244,7 +237,7 @@ def application(request):
 
     try:
         # Only accept requests for rc.base_path
-        if urlparse.urlparse(request.url).path != rc.base_path:
+        if urlparse(request.url).path != rc.base_path:
             raise NotFound
 
         fields = request.form.to_dict()
@@ -259,34 +252,34 @@ def application(request):
 
         response.data = process_form(fields)
 
-    except NoFormData, e:
+    except NoFormData as e:
         response.data = render_page()
 
-    except MissingFields, e:
+    except MissingFields as e:
         response.data = render_page(fields=fields,
                                     message='All fields on a line must be filled out.')
 
-    except TooFewDebts, e:
+    except TooFewDebts as e:
         response.data = render_page(fields=fields,
                                     message='Two or more debts must be provided.')
 
-    except NegativeNumbers, e:
+    except NegativeNumbers as e:
         response.data = render_page(fields=fields,
                                     message='All numbers must be positive.')
 
-    except DuplicateNames, e:
+    except DuplicateNames as e:
         response.data = render_page(fields=fields,
                                     message='To avoid confusion, all debts must have unique names.')
 
-    except RisingBalance, e:
+    except RisingBalance as e:
         response.data = render_page(fields=fields,
-                                    message="Debt '%s' does not have a large enough payment to reduce the balance." % e.message)
+                                    message="Debt '%s' does not have a large enough payment to reduce the balance." % e.args[0])
 
-    except ValueError, e:
+    except ValueError as e:
         response.data = render_page(fields=fields,
                                     message='Balance, payment, and APR must be numeric.')
 
-    except HTTPException, e:
+    except HTTPException as e:
         return e
 
     return response

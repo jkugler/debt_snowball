@@ -8,19 +8,19 @@ import debt_snowball as ds
 class TestAmortization(unittest.TestCase):
     def test_single_loan(self):
         """Test running with one loan"""
-        result = ds.do_amortization('dummy', 95113.31, 1111.67, 5.375)
+        result = ds.do_amortization('dummy', '95113.31', '1111.67', '5.375')
         self.assertEqual(len(result), 109)
         self.assertEqual(ds.money_fmt(147.32), result[-1]['start_balance'])
 
     def test_growing_balance_abort(self):
         """Amortization should abort if balance is growing"""
-        self.assertRaises(ds.RisingBalance, ds.do_amortization, 'dummy', 95113.31, 100, 5.375)
+        self.assertRaises(ds.RisingBalance, ds.do_amortization, 'dummy', '95113.31', '100', '5.375')
 
     def test_multi_loan(self):
         """Test running with one loan and additional paydown"""
         today = datetime.date.today()
         additional_start = today + relativedelta(years=5)
-        result = ds.do_amortization('dummy', 95113.31, 1111.67, 5.375, additional_start, 1000)
+        result = ds.do_amortization('dummy', '95113.31', '1111.67', '5.375', additional_start, 1000)
         self.assertEqual(result[-1]['start_balance'], ds.money_fmt(1205.32))
 
 class TestMoneyFormat(unittest.TestCase):
@@ -68,6 +68,13 @@ class TestFromProcessing(unittest.TestCase):
                           ds.process_form,
                           {'row_count': '1', 'debt_name_1': 'test_name', 'balance_1': 'Dog',
                            'payment_1': '1', 'apr_1':'-5.3'})
+
+    def test_strip_invalid_but_expected_characters(self):
+        """We should be able to handle things like $, %, and ,"""
+        result = ds.process_form({'row_count': '2', 'debt_name_1': 'debt_a', 'balance_1': '$10,000',
+                                  'payment_1': '$300', 'apr_1':'12%',
+                                  'debt_name_2': 'debt b', 'balance_2':'$10,000',
+                                  'payment_2': '$300', 'apr_2': '12%'})
 
     def test_blank_row(self):
         """Handle blank rows gracefully"""
