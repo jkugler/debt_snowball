@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 import os
 import sys
@@ -9,18 +9,17 @@ opd = os.path.dirname
 sys.path.insert(0, opd(os.path.abspath(__file__)))
 
 import debt_snowball
-
-from debt_snowball_tests import (unit, integration)
+from debt_snowball_tests import integration, unit
 
 test_mods = [unit]
 
-if __name__ == '__main__':
-    if '--both' in sys.argv:
+if __name__ == "__main__":
+    if "--both" in sys.argv:
         test_mods.append(integration)
-    elif '--integration' in sys.argv:
+    elif "--integration" in sys.argv:
         test_mods = [integration]
 
-    if '--quiet' in sys.argv:
+    if "--quiet" in sys.argv:
         verbosity = 0
     else:
         verbosity = 2
