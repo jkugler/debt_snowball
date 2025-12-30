@@ -1,43 +1,50 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import datetime
-from decimal import Decimal
 import re
 import sys
+from decimal import Decimal
 from urllib.parse import urlparse
 
 from dateutil.relativedelta import relativedelta
 from jinja2 import Template
 from werkzeug import Request, Response
-from werkzeug.exceptions import HTTPException, BadRequest, NotFound
+from werkzeug.exceptions import BadRequest, HTTPException, NotFound
 
 import debt_snowball_config as rc
 
-__version__ = '2020-11-13-16-05'
+__version__ = "2025-12-30-14-03"
+
 
 class NoFormData(BadRequest):
     pass
 
+
 class MissingFields(Exception):
     pass
+
 
 class NegativeNumbers(Exception):
     pass
 
+
 class TooFewDebts(Exception):
     pass
+
 
 class RisingBalance(Exception):
     pass
 
+
 class InvalidData(Exception):
     pass
+
 
 class DuplicateNames(Exception):
     pass
 
-def money_fmt(value, places=2, curr='$', sep=',', dp='.',
-             pos='', neg='-', trailneg=''):
+
+def money_fmt(value, places=2, curr="$", sep=",", dp=".", pos="", neg="-", trailneg=""):
     """Convert Decimal to a money formatted string.
     Gleaned from https://docs.python.org/3/library/decimal.html#recipes
 
@@ -66,7 +73,7 @@ def money_fmt(value, places=2, curr='$', sep=',', dp='.',
     if not isinstance(value, Decimal):
         value = Decimal(value)
 
-    q = Decimal(10) ** -places      # 2 places --> '0.01'
+    q = Decimal(10) ** -places  # 2 places --> '0.01'
     sign, digits, exp = value.quantize(q).as_tuple()
     result = []
     digits = list(map(str, digits))
@@ -74,11 +81,11 @@ def money_fmt(value, places=2, curr='$', sep=',', dp='.',
     if sign:
         build(trailneg)
     for i in range(places):
-        build(next() if digits else '0')
+        build(next() if digits else "0")
     if places:
         build(dp)
     if not digits:
-        build('0')
+        build("0")
     i = 0
     while digits:
         build(next())
@@ -88,13 +95,14 @@ def money_fmt(value, places=2, curr='$', sep=',', dp='.',
             build(sep)
     build(curr)
     build(neg if sign else pos)
-    return ''.join(reversed(result))
+    return "".join(reversed(result))
 
-def do_amortization(debt_name, balance, payment, apr, additional_start=datetime.date(9999, 12,31), additional_payment=0):
-    apr = float(apr)/100.0
-    monthly_pr = apr/12.0
 
-    if rc.debug: #pragma: no cover
+def do_amortization(debt_name, balance, payment, apr, additional_start=datetime.date(9999, 12, 31), additional_payment=0):
+    apr = float(apr) / 100.0
+    monthly_pr = apr / 12.0
+
+    if rc.debug:  # pragma: no cover
         print("month, start_balance, new_balance, paid_balance, payment, interest_payment, principal_payment")
 
     month_count = 0
@@ -128,30 +136,40 @@ def do_amortization(debt_name, balance, payment, apr, additional_start=datetime.
 
         balance = paid_balance
 
-        if rc.debug: #pragma: no cover
-            print("%s-%s" % (this_month.year, this_month.month),
-                  money_fmt(start_balance), money_fmt(new_balance),
-                  money_fmt(paid_balance), money_fmt(payment),
-                  money_fmt(interest_payment), money_fmt(principal_payment))
+        if rc.debug:  # pragma: no cover
+            print(
+                "%s-%s" % (this_month.year, this_month.month),
+                money_fmt(start_balance),
+                money_fmt(new_balance),
+                money_fmt(paid_balance),
+                money_fmt(payment),
+                money_fmt(interest_payment),
+                money_fmt(principal_payment),
+            )
 
         month_count += 1
 
-        results.append({'month': this_month,
-                        'start_balance': money_fmt(start_balance),
-                        'payment': money_fmt(payment),
-                        'new_balance': money_fmt(new_balance),
-                        'paid_balance': money_fmt(paid_balance),
-                        'interest_payment': money_fmt(interest_payment),
-                        'principal_payment': money_fmt(principal_payment)})
+        results.append(
+            {
+                "month": this_month,
+                "start_balance": money_fmt(start_balance),
+                "payment": money_fmt(payment),
+                "new_balance": money_fmt(new_balance),
+                "paid_balance": money_fmt(paid_balance),
+                "interest_payment": money_fmt(interest_payment),
+                "principal_payment": money_fmt(principal_payment),
+            }
+        )
 
     return results
+
 
 def sort_by_payoff_time(fields):
     debts = {}
 
-    for num in range(1, int(fields['row_count']) + 1):
+    for num in range(1, int(fields["row_count"]) + 1):
         debt_name = fields["debt_name_%s" % num]
-        if debt_name == '':
+        if debt_name == "":
             continue
 
         balance = fields["balance_%s" % num]
@@ -160,29 +178,33 @@ def sort_by_payoff_time(fields):
 
         payments = len(do_amortization(debt_name, balance, payment, apr))
 
-        debts[debt_name] = {'debt_name': debt_name, 'payments': payments, 'balance': balance,
-                            'payment': payment, 'apr': apr}
+        debts[debt_name] = {"debt_name": debt_name, "payments": payments, "balance": balance, "payment": payment, "apr": apr}
 
-    sorted_debts = sorted(debts.values(), key=lambda x: x['payments'])
+    sorted_debts = sorted(debts.values(), key=lambda x: x["payments"])
 
     return sorted_debts
 
+
 def calculate_combined_payoff_tables(sorted_debts):
-    additional_start = datetime.date(9999, 12,31)
+    additional_start = datetime.date(9999, 12, 31)
     additional_payment = 0
     results = []
 
     for debt in sorted_debts:
-        results.append({'debt_name': debt['debt_name'],
-                        'payoff_chart': do_amortization(debt['debt_name'],
-                                                        debt['balance'], debt['payment'],
-                                                        debt['apr'], additional_start,
-                                                        additional_payment)})
+        results.append(
+            {
+                "debt_name": debt["debt_name"],
+                "payoff_chart": do_amortization(
+                    debt["debt_name"], debt["balance"], debt["payment"], debt["apr"], additional_start, additional_payment
+                ),
+            }
+        )
 
-        additional_start = results[-1]['payoff_chart'][-1]['month']
-        additional_payment = additional_payment + float(debt['payment'])
+        additional_start = results[-1]["payoff_chart"][-1]["month"]
+        additional_payment = additional_payment + float(debt["payment"])
 
     return results
+
 
 def process_form(fields):
     ##TODO: Do this checking client-side too
@@ -195,18 +217,18 @@ def process_form(fields):
     s_fields = fields.copy()
 
     # Make sure all values are filled out if one value on a line is filled out
-    for num in range(1, int(fields['row_count']) + 1):
-        not_blank = [bool(fields["%s_%s" % (f, num)].strip()) for f in ['debt_name', 'balance', 'payment', 'apr']]
+    for num in range(1, int(fields["row_count"]) + 1):
+        not_blank = [bool(fields["%s_%s" % (f, num)].strip()) for f in ["debt_name", "balance", "payment", "apr"]]
         if any(not_blank) and not all(not_blank):
             raise MissingFields
 
-        for f in ['balance', 'payment', 'apr']:
-            s_fields["%s_%s" % (f, num)] = re.sub('[$%,]', '', s_fields["%s_%s" % (f, num)].strip())
+        for f in ["balance", "payment", "apr"]:
+            s_fields["%s_%s" % (f, num)] = re.sub("[$%,]", "", s_fields["%s_%s" % (f, num)].strip())
 
-        if any([s_fields["debt_name_%s" % (num)] != '' and float(s_fields["%s_%s" % (f, num)]) < 0 for f in ['balance', 'payment', 'apr']]):
+        if any([s_fields["debt_name_%s" % (num)] != "" and float(s_fields["%s_%s" % (f, num)]) < 0 for f in ["balance", "payment", "apr"]]):
             raise NegativeNumbers
 
-        if s_fields["debt_name_%s" % (num)] == '':
+        if s_fields["debt_name_%s" % (num)] == "":
             continue
 
         debt_names[s_fields["debt_name_%s" % num]] = 1
@@ -223,17 +245,18 @@ def process_form(fields):
 
     payoff_tables = calculate_combined_payoff_tables(sorted_debts)
 
-    return render_page(fields, payoff_tables, '')
+    return render_page(fields, payoff_tables, "")
 
-def render_page(fields={}, results=[], message=''):
+
+def render_page(fields={}, results=[], message=""):
     template = Template(open(rc.template_file).read())
-    return template.render(fields=fields, results=results, message=message,
-                           data_ad_client=rc.data_ad_client, version=__version__)
+    return template.render(fields=fields, results=results, message=message, data_ad_client=rc.data_ad_client, version=__version__)
+
 
 @Request.application
 def application(request):
 
-    response = Response(mimetype='text/html')
+    response = Response(mimetype="text/html")
 
     try:
         # Only accept requests for rc.base_path
@@ -242,9 +265,9 @@ def application(request):
 
         fields = request.form.to_dict()
 
-        if request.method == 'GET':
+        if request.method == "GET":
             raise NoFormData
-        elif request.method == 'POST':
+        elif request.method == "POST":
             if not request.form:
                 raise NoFormData
         else:
@@ -256,36 +279,32 @@ def application(request):
         response.data = render_page()
 
     except MissingFields as e:
-        response.data = render_page(fields=fields,
-                                    message='All fields on a line must be filled out.')
+        response.data = render_page(fields=fields, message="All fields on a line must be filled out.")
 
     except TooFewDebts as e:
-        response.data = render_page(fields=fields,
-                                    message='Two or more debts must be provided.')
+        response.data = render_page(fields=fields, message="Two or more debts must be provided.")
 
     except NegativeNumbers as e:
-        response.data = render_page(fields=fields,
-                                    message='All numbers must be positive.')
+        response.data = render_page(fields=fields, message="All numbers must be positive.")
 
     except DuplicateNames as e:
-        response.data = render_page(fields=fields,
-                                    message='To avoid confusion, all debts must have unique names.')
+        response.data = render_page(fields=fields, message="To avoid confusion, all debts must have unique names.")
 
     except RisingBalance as e:
-        response.data = render_page(fields=fields,
-                                    message="Debt '%s' does not have a large enough payment to reduce the balance." % e.args[0])
+        response.data = render_page(fields=fields, message="Debt '%s' does not have a large enough payment to reduce the balance." % e.args[0])
 
     except ValueError as e:
-        response.data = render_page(fields=fields,
-                                    message='Balance, payment, and APR must be numeric.')
+        response.data = render_page(fields=fields, message="Balance, payment, and APR must be numeric.")
 
     except HTTPException as e:
         return e
 
     return response
 
-if __name__ == '__main__': #pragma: no cover
+
+if __name__ == "__main__":  # pragma: no cover
     from werkzeug.serving import run_simple
+
     if sys.argv[1:]:
         port = int(sys.argv[1])
     else:
@@ -293,5 +312,4 @@ if __name__ == '__main__': #pragma: no cover
 
     print("Serving on port %s" % port)
 
-    run_simple('127.0.0.1', port, application, use_debugger=False, use_reloader=False,
-               passthrough_errors=True, threaded=False)
+    run_simple("127.0.0.1", port, application, use_debugger=False, use_reloader=False, passthrough_errors=True, threaded=False)
